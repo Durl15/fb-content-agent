@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+content.db
+dashboard/node_modules/
+dashboard/dist/
