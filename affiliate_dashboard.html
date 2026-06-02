@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DJ AI Affiliate Command Center</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+      --text: #e2e4ed; --muted: #7c7f96; --accent: #4f6ef7;
+      --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+               padding: 24px 16px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+               overflow-y: auto; }
+    .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+                  color: var(--muted); margin-bottom: 12px; padding: 0 8px; }
+    .nav-link { display: block; padding: 8px 12px; border-radius: 7px; color: var(--muted);
+                text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 2px;
+                cursor: pointer; transition: all .15s; }
+    .nav-link:hover { color: var(--text); background: var(--border); }
+    .main { flex: 1; padding: 32px; max-width: 1100px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+    h2.section { font-size: 15px; font-weight: 600; margin: 32px 0 14px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 8px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .stat-value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+    .green { color: var(--green); } .red { color: var(--red); } .yellow { color: var(--yellow); }
+    table { width: 100%; border-collapse: collapse; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    th { text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase;
+         letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+    .badge-red   { background: rgba(239,68,68,.15);  color: var(--red); }
+    .badge-muted { background: var(--border); color: var(--muted); }
+    .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer;
+           font-size: 12px; font-weight: 600; transition: all .15s; }
+    .btn-pause    { background: rgba(239,68,68,.15);  color: var(--red);    }
+    .btn-activate { background: rgba(34,197,94,.15);  color: var(--green);  }
+    .btn-primary  { background: var(--accent); color: #fff; padding: 8px 18px; font-size: 13px; }
+    .btn:hover { opacity: .8; }
+    .alert-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .alert-card { background: var(--surface); border: 1px solid var(--border);
+                  border-left: 4px solid var(--red); border-radius: 10px; padding: 16px; }
+    .alert-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .alert-card p  { font-size: 12px; color: var(--muted); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--surface);
+                 border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .form-grid label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+    .form-grid input, .form-grid select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); padding: 7px 10px; font-size: 13px; }
+    .form-grid input:focus, .form-grid select:focus { outline: none; border-color: var(--accent); }
+    .form-full { grid-column: 1 / -1; }
+    .report-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+                  padding: 24px; white-space: pre-wrap; line-height: 1.7; font-size: 13px; color: var(--text); }
+    .empty { color: var(--muted); font-size: 13px; padding: 20px 0; }
+    #refresh-indicator { font-size: 11px; color: var(--muted); margin-left: 12px; }
+    .spinning { display: inline-block; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div style="padding:0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:20px">
+      <div style="font-weight:700;font-size:15px">DJ AI</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Affiliate Command Center</div>
+    </div>
+    <h2>Navigation</h2>
+    <a class="nav-link" onclick="scrollTo('stats')">📊 Stats</a>
+    <a class="nav-link" onclick="scrollTo('top-performers')">🏆 Top Performers</a>
+    <a class="nav-link" onclick="scrollTo('alerts')">🚨 Alerts</a>
+    <a class="nav-link" onclick="scrollTo('active-offers')">🔗 Active Offers</a>
+    <a class="nav-link" onclick="scrollTo('add-affiliate')">➕ Add Affiliate</a>
+    <a class="nav-link" onclick="scrollTo('report')">🤖 AI Report</a>
+    <div style="margin-top:auto;padding-top:20px;font-size:11px;color:var(--muted)">
+      API: localhost:8002<br>Tracker: localhost:8003
+    </div>
+  </aside>
+
+  <main class="main">
+    <h1>DJ AI Affiliate Command Center</h1>
+    <p class="subtitle">
+      Revenue tracking · Click attribution · Performance intelligence
+      <span id="refresh-indicator"></span>
+    </p>
+
+    <!-- Stats -->
+    <h2 class="section" id="stats">Overview</h2>
+    <div class="stats" id="stats-row">
+      <div class="stat"><div class="stat-label">Total Revenue</div><div class="stat-value green" id="s-revenue">—</div></div>
+      <div class="stat"><div class="stat-label">Total Clicks</div><div class="stat-value" id="s-clicks">—</div></div>
+      <div class="stat"><div class="stat-label">Total Conversions</div><div class="stat-value" id="s-conversions">—</div></div>
+      <div class="stat"><div class="stat-label">Avg Commission</div><div class="stat-value yellow" id="s-avg-commission">—</div></div>
+    </div>
+
+    <!-- Top Performers -->
+    <h2 class="section" id="top-performers">Top Performers</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Clicks</th><th>Conversions</th>
+          <th>Conv. Rate</th><th>Revenue</th>
+        </tr>
+      </thead>
+      <tbody id="top-table"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+    </table>
+
+    <!-- Underperforming Alerts -->
+    <h2 class="section" id="alerts">🚨 Underperforming Alerts</h2>
+    <div class="alert-cards" id="alert-cards">
+      <p class="empty">Loading…</p>
+    </div>
+
+    <!-- Active Offers -->
+    <h2 class="section" id="active-offers">Active Offers</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Type</th><th>Commission</th>
+          <th>Clicks</th><th>Revenue</th><th>Status</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="offers-table"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+    </table>
+
+    <!-- Add Affiliate -->
+    <h2 class="section" id="add-affiliate">Add New Affiliate</h2>
+    <form class="form-grid" id="add-form" onsubmit="addAffiliate(event)">
+      <div><label>Name *</label><input name="name" required placeholder="HubSpot CRM" /></div>
+      <div><label>Company</label><input name="company" placeholder="HubSpot" /></div>
+      <div><label>Tracking URL</label><input name="tracking_url" placeholder="https://track.djaiconsulting.com/go/hubspot" /></div>
+      <div><label>Display URL</label><input name="display_url" placeholder="partnerstack.com/hubspot" /></div>
+      <div>
+        <label>Commission Type</label>
+        <select name="commission_type">
+          <option value="cpa">CPA</option>
+          <option value="cpc">CPC</option>
+          <option value="revenue_share">Revenue Share</option>
+        </select>
+      </div>
+      <div><label>Commission Value ($)</label><input name="commission_value" type="number" step="0.01" placeholder="200.00" /></div>
+      <div class="form-full"><label>CTA Template</label>
+        <input name="cta_template" placeholder="Manage your business contacts for free:" /></div>
+      <div><label>Niche Tags (comma-separated)</label>
+        <input name="niche_tags" placeholder="ai_tools,business_software" /></div>
+      <div><label>Compatible Formats (comma-separated)</label>
+        <input name="compatible_formats" value="reel_script,carousel,text_post" /></div>
+      <div class="form-full" style="text-align:right">
+        <button type="submit" class="btn btn-primary">+ Add Affiliate</button>
+        <span id="add-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+      </div>
+    </form>
+
+    <!-- AI Report -->
+    <h2 class="section" id="report">AI Performance Report</h2>
+    <div style="margin-bottom:12px">
+      <button class="btn btn-primary" onclick="loadReport()">Generate Report</button>
+      <span id="report-status" style="margin-left:12px;font-size:12px;color:var(--muted)"></span>
+    </div>
+    <div class="report-box" id="report-box" style="display:none"></div>
+    <p class="empty" id="report-empty">Click Generate Report to get Claude's analysis.</p>
+  </main>
+</div>
+
+<script>
+  const API = 'http://localhost:8002';
+  let allAffiliates = [];
+
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function fetchAffiliates() {
+    const r = await fetch(`${API}/affiliates`);
+    return r.json();
+  }
+
+  async function fetchTop() {
+    const r = await fetch(`${API}/affiliates/top`);
+    return r.json();
+  }
+
+  function convRate(a) {
+    return a.clicks > 0 ? ((a.conversions / a.clicks) * 100).toFixed(1) + '%' : '—';
+  }
+
+  function renderStats(affiliates) {
+    const revenue = affiliates.reduce((s, a) => s + (a.total_revenue || 0), 0);
+    const clicks = affiliates.reduce((s, a) => s + (a.clicks || 0), 0);
+    const conversions = affiliates.reduce((s, a) => s + (a.conversions || 0), 0);
+    const avgComm = affiliates.length
+      ? (affiliates.reduce((s, a) => s + (a.commission_value || 0), 0) / affiliates.length).toFixed(2)
+      : '0.00';
+    document.getElementById('s-revenue').textContent = '$' + revenue.toFixed(2);
+    document.getElementById('s-clicks').textContent = clicks.toLocaleString();
+    document.getElementById('s-conversions').textContent = conversions.toLocaleString();
+    document.getElementById('s-avg-commission').textContent = '$' + avgComm;
+  }
+
+  function renderTopTable(affiliates) {
+    const sorted = [...affiliates].sort((a, b) => b.total_revenue - a.total_revenue);
+    const tbody = document.getElementById('top-table');
+    if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No affiliates yet.</td></tr>'; return; }
+    tbody.innerHTML = sorted.map(a => `
+      <tr>
+        <td><strong>${a.name}</strong><br><span style="font-size:11px;color:var(--muted)">${a.company || ''}</span></td>
+        <td>${a.clicks || 0}</td>
+        <td>${a.conversions || 0}</td>
+        <td>${convRate(a)}</td>
+        <td class="green"><strong>$${(a.total_revenue || 0).toFixed(2)}</strong></td>
+      </tr>`).join('');
+  }
+
+  function renderAlerts(underperforming) {
+    const el = document.getElementById('alert-cards');
+    if (!underperforming.length) {
+      el.innerHTML = '<p class="empty">No underperforming affiliates. All offers are converting.</p>';
+      return;
+    }
+    el.innerHTML = underperforming.map(a => `
+      <div class="alert-card">
+        <h3>${a.name}</h3>
+        <p>${a.clicks} clicks · 0 conversions · $0.00 revenue</p>
+        <p style="margin-top:8px;color:var(--red);font-size:12px">Consider pausing or updating CTA</p>
+        <button class="btn btn-pause" style="margin-top:10px" onclick="toggleStatus(${a.id}, 0)">Pause Offer</button>
+      </div>`).join('');
+  }
+
+  function renderOffersTable(affiliates) {
+    const tbody = document.getElementById('offers-table');
+    if (!affiliates.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No affiliates.</td></tr>'; return; }
+    tbody.innerHTML = affiliates.map(a => `
+      <tr>
+        <td><strong>${a.name}</strong></td>
+        <td><span class="badge badge-muted">${a.commission_type}</span></td>
+        <td>$${(a.commission_value || 0).toFixed(2)}</td>
+        <td>${a.clicks || 0}</td>
+        <td class="${a.total_revenue > 0 ? 'green' : ''}">$${(a.total_revenue || 0).toFixed(2)}</td>
+        <td><span class="badge ${a.is_active ? 'badge-green' : 'badge-red'}">${a.is_active ? 'Active' : 'Paused'}</span></td>
+        <td>
+          ${a.is_active
+            ? `<button class="btn btn-pause" onclick="toggleStatus(${a.id}, 0)">Pause</button>`
+            : `<button class="btn btn-activate" onclick="toggleStatus(${a.id}, 1)">Activate</button>`}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function toggleStatus(id, activate) {
+    const endpoint = activate ? 'activate' : 'pause';
+    await fetch(`${API}/affiliates/${id}/${endpoint}`, { method: 'POST' });
+    await refresh();
+  }
+
+  async function addAffiliate(e) {
+    e.preventDefault();
+    const status = document.getElementById('add-status');
+    const form = e.target;
+    const body = {};
+    new FormData(form).forEach((v, k) => { if (v) body[k] = isNaN(v) ? v : v.includes('.') ? parseFloat(v) : v; });
+    status.textContent = 'Adding…';
+    try {
+      const r = await fetch(`${API}/affiliates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      status.style.color = 'var(--green)';
+      status.textContent = '✓ Added successfully';
+      form.reset();
+      form.querySelector('[name=compatible_formats]').value = 'reel_script,carousel,text_post';
+      await refresh();
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } catch (err) {
+      status.style.color = 'var(--red)';
+      status.textContent = '✗ ' + err.message;
+    }
+  }
+
+  async function loadReport() {
+    const status = document.getElementById('report-status');
+    const box = document.getElementById('report-box');
+    const empty = document.getElementById('report-empty');
+    status.textContent = '⏳ Generating with Claude…';
+    box.style.display = 'none';
+    empty.style.display = 'none';
+    try {
+      const r = await fetch(`${API}/affiliates/report`);
+      const data = await r.json();
+      box.textContent = data.report;
+      box.style.display = 'block';
+      status.textContent = '';
+    } catch {
+      status.style.color = 'var(--red)';
+      status.textContent = '✗ Could not generate report';
+      empty.style.display = 'block';
+    }
+  }
+
+  async function refresh() {
+    const indicator = document.getElementById('refresh-indicator');
+    indicator.innerHTML = '<span class="spinning">↻</span> Refreshing…';
+    try {
+      const [affiliates, top] = await Promise.all([fetchAffiliates(), fetchTop()]);
+      allAffiliates = affiliates;
+      renderStats(affiliates);
+      renderTopTable(affiliates);
+      renderAlerts(top.underperforming || []);
+      renderOffersTable(affiliates);
+      indicator.textContent = `· Last updated ${new Date().toLocaleTimeString()}`;
+    } catch {
+      indicator.innerHTML = '<span style="color:var(--red)">· API unreachable</span>';
+    }
+  }
+
+  // Initial load + auto-refresh every 60s
+  refresh();
+  setInterval(refresh, 60000);
+</script>
+</body>
+</html>

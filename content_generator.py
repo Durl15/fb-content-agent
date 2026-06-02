@@ -2,6 +2,7 @@ import json
 import os
 import anthropic
 from dotenv import load_dotenv
+from affiliate_manager import get_rotating_cta
 
 load_dotenv(override=True)
 
@@ -42,6 +43,8 @@ def generate_topics(niche: str, count: int) -> list:
 
 def generate_reel_script(topic: dict) -> dict:
     client = _get_client()
+    cta = get_rotating_cta("reel_script", topic.get("niche_tag", "ai_tools"))
+    content = json.dumps(topic) + f'\n\nEnd with this exact CTA: {cta}'
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=1000,
@@ -51,13 +54,15 @@ def generate_reel_script(topic: dict) -> dict:
             "Return ONLY JSON: "
             '{"hook": ..., "body": ..., "cta": ..., "caption": ..., "hashtags": ..., "duration_seconds": ...}'
         ),
-        messages=[{"role": "user", "content": json.dumps(topic)}],
+        messages=[{"role": "user", "content": content}],
     )
     return _parse(message.content[0].text)
 
 
 def generate_carousel(topic: dict) -> dict:
     client = _get_client()
+    cta = get_rotating_cta("carousel", topic.get("niche_tag", "ai_tools"))
+    content = json.dumps(topic) + f'\n\nEnd with this exact CTA: {cta}'
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=1000,
@@ -66,13 +71,15 @@ def generate_carousel(topic: dict) -> dict:
             "Return ONLY JSON: "
             '{"slides": [{"headline": ..., "body": ...}], "caption": ..., "hashtags": ...}'
         ),
-        messages=[{"role": "user", "content": json.dumps(topic)}],
+        messages=[{"role": "user", "content": content}],
     )
     return _parse(message.content[0].text)
 
 
 def generate_text_post(topic: dict) -> dict:
     client = _get_client()
+    cta = get_rotating_cta("text_post", topic.get("niche_tag", "ai_tools"))
+    content = json.dumps(topic) + f'\n\nEnd with this exact CTA: {cta}'
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=1000,
@@ -82,6 +89,6 @@ def generate_text_post(topic: dict) -> dict:
             "Return ONLY JSON: "
             '{"post_text": ..., "hashtags": ...}'
         ),
-        messages=[{"role": "user", "content": json.dumps(topic)}],
+        messages=[{"role": "user", "content": content}],
     )
     return _parse(message.content[0].text)

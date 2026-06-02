@@ -145,6 +145,43 @@ The dashboard shows a warning banner when the Facebook token is near expiry. Cli
 
 If `FB_APP_SECRET` or `FB_USER_TOKEN` are not set, the button will show an error with instructions to fill them in.
 
+## Affiliate Link Manager
+
+Seed starter affiliate offers:
+
+```bash
+python seed_affiliates.py
+```
+
+Run affiliate performance report:
+
+```bash
+python main_agent.py --mode affiliate
+```
+
+Open affiliate dashboard (requires API running on :8002):
+
+```bash
+# Open affiliate_dashboard.html directly in your browser
+start affiliate_dashboard.html
+```
+
+Track clicks — point your domain DNS to this server:
+
+```bash
+uvicorn tracking_server:app --port 8003
+```
+
+### Setting Up Real Tracking URLs
+
+- Register `track.djaiconsulting.com` as a subdomain in Hostinger
+- Point A record to your Railway or VPS server IP
+- Deploy `tracking_server.py` to Railway
+- Update `affiliate_links.tracking_url` in `content.db` with real URLs
+
+Every click through your Facebook content will be logged before redirecting
+to the affiliate destination, giving you full click and conversion attribution.
+
 ## Author
 
 **Don Johnson** — [@Durl15](https://github.com/Durl15)

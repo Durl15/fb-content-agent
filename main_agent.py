@@ -11,6 +11,7 @@ load_dotenv()
 import content_generator
 import fb_poster
 import performance_monitor
+import affiliate_manager
 from scheduler import build_weekly_calendar, run_scheduler
 
 DB_PATH = "content.db"
@@ -135,11 +136,17 @@ def mode_monitor():
     print("\n" + report)
 
 
+def mode_affiliate():
+    print("Generating affiliate performance report...")
+    report = affiliate_manager.get_affiliate_report()
+    print("\n" + report)
+
+
 def main():
     parser = argparse.ArgumentParser(description="FB Content Agent")
     parser.add_argument(
         "--mode",
-        choices=["generate", "schedule", "post", "monitor", "all"],
+        choices=["generate", "schedule", "post", "monitor", "affiliate", "all"],
         default="all",
     )
     args = parser.parse_args()
@@ -155,6 +162,8 @@ def main():
         mode_post()
     elif mode == "monitor":
         mode_monitor()
+    elif mode == "affiliate":
+        mode_affiliate()
     elif mode == "all":
         print("\n--- GENERATE ---")
         mode_generate()
@@ -164,6 +173,8 @@ def main():
         mode_post()
         print("\n--- MONITOR ---")
         mode_monitor()
+        print("\n--- AFFILIATE ---")
+        mode_affiliate()
 
 
 if __name__ == "__main__":

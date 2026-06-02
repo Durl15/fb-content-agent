@@ -38,6 +38,46 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS affiliate_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            company TEXT,
+            tracking_url TEXT,
+            display_url TEXT,
+            commission_type TEXT,
+            commission_value REAL,
+            cta_template TEXT,
+            niche_tags TEXT,
+            compatible_formats TEXT,
+            clicks INTEGER DEFAULT 0,
+            conversions INTEGER DEFAULT 0,
+            total_revenue REAL DEFAULT 0.0,
+            is_active INTEGER DEFAULT 1,
+            created_at TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS affiliate_clicks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            affiliate_id INTEGER,
+            content_id INTEGER,
+            clicked_at TEXT,
+            source TEXT DEFAULT 'facebook'
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS affiliate_conversions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            affiliate_id INTEGER,
+            content_id INTEGER,
+            commission REAL,
+            converted_at TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
     print(f"Database initialized: {DB_PATH}")
