@@ -144,3 +144,7 @@ python main_agent.py                    # run full pipeline (default)
 The dashboard shows a warning banner when the Facebook token is near expiry. Clicking **Auto-Refresh** exchanges `FB_USER_TOKEN` for a fresh long-lived user token, fetches a new Page Access Token, and writes both back to `.env` automatically — no server restart needed.
 
 If `FB_APP_SECRET` or `FB_USER_TOKEN` are not set, the button will show an error with instructions to fill them in.
+
+## Author
+
+**Don Johnson** — [@Durl15](https://github.com/Durl15)
